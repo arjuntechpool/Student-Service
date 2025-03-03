@@ -9,6 +9,12 @@ spring:
     driverClassName: org.h2.Driver
     username: sa
     password: password
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
   h2:
     console:
       enabled: true
@@ -39,3 +45,20 @@ logging:
     com.student.detailsservice: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+resilience4j:
+  circuitbreaker:
+    instances:
+      student-details-service:  # Use a relevant name (e.g., studentService, detailsService)
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+  retry:
+    instances:
+      student-details-service:  # Use same name as above
+        maxAttempts: 3
+        waitDuration: 1s

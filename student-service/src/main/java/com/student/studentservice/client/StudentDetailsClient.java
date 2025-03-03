@@ -1,5 +1,7 @@
 package com.student.studentservice.client;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -51,5 +53,15 @@ public class StudentDetailsClient {
                 entity,
                 StudentDetailsDto.class
         ).getBody();
+    }
+
+    @CircuitBreaker(name = "studentService", fallbackMethod = "verifyStudentExistsFallback")
+    @Retry(name = "studentService")
+    // Fallback method called when circuit is open
+    public boolean verifyStudentExistsFallback(String studentId, Exception e) {
+        System.err.println("Fallback for verifyStudentExists: " + e.getMessage());
+        // We need a sensible default - in this case we'll assume student exists
+        // In production, you might want to check a cache or return false
+        return true;
     }
 }
