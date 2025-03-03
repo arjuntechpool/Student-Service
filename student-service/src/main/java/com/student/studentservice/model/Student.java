@@ -8,6 +8,14 @@ import jakarta.persistence.Id;
 @Entity
 public class Student {
 
+    public Student(Long id, String username, String password) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+    }
+
+    public Student() {}
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -39,4 +47,5 @@ public class Student {
     public void setPassword(String password) {
         this.password = password;
     }
+
 }

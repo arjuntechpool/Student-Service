@@ -13,7 +13,7 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    private final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor("8092f3a42fbb905ea5a4e4edba230b28517920d6ba5d6e24570f3acc90f97f3d".getBytes());
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);

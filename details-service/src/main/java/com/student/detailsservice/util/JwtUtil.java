@@ -2,6 +2,7 @@ package com.student.detailsservice.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
@@ -12,9 +13,7 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // This should match the key in your student-service
-    // In a production environment, this should be externalized and shared securely
-    private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor("your-secret-key-which-should-be-at-least-32-bytes-long".getBytes());
+    private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor("8092f3a42fbb905ea5a4e4edba230b28517920d6ba5d6e24570f3acc90f97f3d".getBytes());
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
