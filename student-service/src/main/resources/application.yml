@@ -49,7 +49,16 @@ logging:
 resilience4j:
   circuitbreaker:
     instances:
-      student-service:  # Use a relevant name (e.g., studentService, detailsService)
+      studentService:  # Used in StudentDetailsService for calls to Student Service
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+      detailsService:  # Used in StudentService for calls to Student Details Service
         registerHealthIndicator: true
         slidingWindowSize: 10
         minimumNumberOfCalls: 5
@@ -60,7 +69,10 @@ resilience4j:
         eventConsumerBufferSize: 10
   retry:
     instances:
-      student-service:  # Use same name as above
+      studentService:
+        maxAttempts: 3
+        waitDuration: 1s
+      detailsService:
         maxAttempts: 3
         waitDuration: 1s
 

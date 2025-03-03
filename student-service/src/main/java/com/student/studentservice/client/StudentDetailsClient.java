@@ -12,19 +12,21 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class StudentDetailsClient {
 
+    private static final String DETAILS_SERVICE = "detailsService";
+
     @Autowired
     private RestTemplate restTemplate;
 
-    // Used when registering a student to create a default profile
+    // Add circuit breaker to this method
+    @CircuitBreaker(name = DETAILS_SERVICE, fallbackMethod = "createStudentDetailsFallback")
+    @Retry(name = DETAILS_SERVICE)
     public void createStudentDetails(String username, String token, String firstName, String lastName, String email) {
         String url = "http://student-details-service/details";
 
-        // Create headers with the JWT token and X-User header
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + token);
         headers.set("X-User", username);
 
-        // Create student details object
         StudentDetailsDto detailsDto = new StudentDetailsDto();
         detailsDto.setStudentId(username);
         detailsDto.setFirstName(firstName);
@@ -32,12 +34,19 @@ public class StudentDetailsClient {
         detailsDto.setEmail(email);
 
         HttpEntity<StudentDetailsDto> entity = new HttpEntity<>(detailsDto, headers);
-
-        // Make the request
         restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
     }
 
-    // Used during login to fetch student details
+    // Add the fallback method for createStudentDetails
+    public void createStudentDetailsFallback(String username, String token, String firstName,
+                                             String lastName, String email, Exception e) {
+        System.err.println("Fallback for createStudentDetails: " + e.getMessage());
+        // Maybe log this for later retry or queue it
+    }
+
+    // Add circuit breaker to this method
+    @CircuitBreaker(name = DETAILS_SERVICE, fallbackMethod = "getStudentDetailsFallback")
+    @Retry(name = DETAILS_SERVICE)
     public StudentDetailsDto getStudentDetails(String username, String token) {
         String url = "http://student-details-service/details/" + username;
 
@@ -55,13 +64,15 @@ public class StudentDetailsClient {
         ).getBody();
     }
 
-    @CircuitBreaker(name = "studentService", fallbackMethod = "verifyStudentExistsFallback")
-    @Retry(name = "studentService")
-    // Fallback method called when circuit is open
-    public boolean verifyStudentExistsFallback(String studentId, Exception e) {
-        System.err.println("Fallback for verifyStudentExists: " + e.getMessage());
-        // We need a sensible default - in this case we'll assume student exists
-        // In production, you might want to check a cache or return false
-        return true;
+    // Add the fallback method for getStudentDetails
+    public StudentDetailsDto getStudentDetailsFallback(String username, String token, Exception e) {
+        System.err.println("Fallback for getStudentDetails: " + e.getMessage());
+        // Return a default/empty StudentDetailsDto
+        StudentDetailsDto defaultDto = new StudentDetailsDto();
+        defaultDto.setStudentId(username);
+        defaultDto.setFirstName("Unavailable");
+        defaultDto.setLastName("Unavailable");
+        return defaultDto;
     }
+
 }

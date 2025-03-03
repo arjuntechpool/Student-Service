@@ -15,6 +15,7 @@ public class StudentServiceClient {
     @Autowired
     private RestTemplate restTemplate;
 
+    // This is correct - keep this as is
     @CircuitBreaker(name = STUDENT_SERVICE, fallbackMethod = "verifyStudentExistsFallback")
     @Retry(name = STUDENT_SERVICE)
     public boolean verifyStudentExists(String studentId) {
@@ -24,17 +25,13 @@ public class StudentServiceClient {
             return response.getBody() != null && response.getBody();
         } catch (Exception e) {
             System.err.println("Error verifying student: " + e.getMessage());
-            throw e; // Let the circuit breaker handle it
+            throw e;
         }
     }
 
-    @CircuitBreaker(name = "studentService", fallbackMethod = "verifyStudentExistsFallback")
-    @Retry(name = "studentService")
-    // Fallback method called when circuit is open
+    // Remove any circuit breaker annotations from the fallback method
     public boolean verifyStudentExistsFallback(String studentId, Exception e) {
         System.err.println("Fallback for verifyStudentExists: " + e.getMessage());
-        // We need a sensible default - in this case we'll assume student exists
-        // In production, you might want to check a cache or return false
         return true;
     }
 }
