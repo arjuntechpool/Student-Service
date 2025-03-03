@@ -1,5 +1,6 @@
 package com.student.detailsservice.service;
 
+import com.student.detailsservice.client.StudentServiceClient;
 import com.student.detailsservice.model.StudentDetails;
 import com.student.detailsservice.repository.StudentDetailsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +15,20 @@ public class StudentDetailsService {
     @Autowired
     private StudentDetailsRepository studentDetailsRepository;
 
+    @Autowired
+    private StudentServiceClient studentServiceClient;
+
     public StudentDetails createStudentDetails(StudentDetails studentDetails) {
+        // Verify student exists before creating details
+        boolean studentExists = studentServiceClient.verifyStudentExists(studentDetails.getStudentId());
+        if (!studentExists) {
+            throw new RuntimeException("Student with ID " + studentDetails.getStudentId() + " does not exist");
+        }
+
         return studentDetailsRepository.save(studentDetails);
     }
 
+    // Rest of your methods remain unchanged
     public StudentDetails updateStudentDetails(String studentId, StudentDetails updatedDetails) {
         Optional<StudentDetails> existingDetails = studentDetailsRepository.findByStudentId(studentId);
 

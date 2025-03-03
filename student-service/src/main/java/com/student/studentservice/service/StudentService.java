@@ -1,26 +1,18 @@
 package com.student.studentservice.service;
 
+import com.student.studentservice.client.StudentDetailsClient;
+import com.student.studentservice.client.StudentDetailsDto;
+import com.student.studentservice.controller.StudentController.LoginResponse;
+import com.student.studentservice.controller.StudentController.RegistrationRequest;
 import com.student.studentservice.model.Student;
 import com.student.studentservice.repository.StudentRepository;
 import com.student.studentservice.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 public class StudentService {
-
-    public StudentService(RestTemplate restTemplate, StudentRepository studentRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
-        this.restTemplate = restTemplate;
-        this.studentRepository = studentRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil;
-    }
-
-    @Autowired
-    private RestTemplate restTemplate;
 
     @Autowired
     private StudentRepository studentRepository;
@@ -31,17 +23,53 @@ public class StudentService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    public Student registerStudent(Student student) {
-        student.setPassword(passwordEncoder.encode(student.getPassword()));
-        return studentRepository.save(student);
+    @Autowired
+    private StudentDetailsClient studentDetailsClient;
+
+    public Student registerStudent(RegistrationRequest request) {
+        // Check if username already exists
+        if (studentRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new RuntimeException("Username already exists");
+        }
+
+        // Create and save student
+        Student student = new Student();
+        student.setUsername(request.getUsername());
+        student.setPassword(passwordEncoder.encode(request.getPassword()));
+        Student savedStudent = studentRepository.save(student);
+
+        // Generate token for the new student
+        String token = jwtUtil.generateToken(request.getUsername());
+
+        // Create student details through the client
+        studentDetailsClient.createStudentDetails(
+                request.getUsername(),
+                token,
+                request.getFirstName(),
+                request.getLastName(),
+                request.getEmail()
+        );
+
+        return savedStudent;
     }
 
-    public String loginStudent(String username, String password) {
+    public LoginResponse loginStudent(String username, String password) {
         Student student = studentRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
         if (passwordEncoder.matches(password, student.getPassword())) {
-            return jwtUtil.generateToken(username);
+            // Generate token
+            String token = jwtUtil.generateToken(username);
+
+            // Fetch student details
+            StudentDetailsDto details = studentDetailsClient.getStudentDetails(username, token);
+
+            // Create response
+            LoginResponse response = new LoginResponse();
+            response.setToken(token);
+            response.setDetails(details);
+
+            return response;
         } else {
             throw new RuntimeException("Invalid credentials");
         }
@@ -49,18 +77,5 @@ public class StudentService {
 
     public boolean existsByUsername(String username) {
         return studentRepository.findByUsername(username).isPresent();
-    }
-
-    public boolean verifyStudentExists(String studentId) {
-        try {
-            // Call student service using Eureka service name
-            ResponseEntity<Boolean> response = restTemplate.getForEntity(
-                    "http://student-service/students/verify/" + studentId,
-                    Boolean.class);
-            return response.getBody() != null && response.getBody();
-        } catch (Exception e) {
-            // Handle exceptions
-            return false;
-        }
     }
 }
