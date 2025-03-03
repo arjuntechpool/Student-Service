@@ -4,6 +4,14 @@ server:
 spring:
   application:
     name: student-details-service
+  main:
+    allow-bean-definition-overriding: true
+  config:
+    import: optional:configserver:http://localhost:8888
+  cloud:
+    config:
+      uri: http://localhost:8888
+      fail-fast: false
   datasource:
     url: jdbc:h2:mem:detailsdb
     driverClassName: org.h2.Driver
@@ -75,3 +83,6 @@ resilience4j:
       detailsService:
         maxAttempts: 3
         waitDuration: 1s
+
+jwt:
+  secret: 8092f3a42fbb905ea5a4e4edba230b28517920d6ba5d6e24570f3acc90f97f3d
