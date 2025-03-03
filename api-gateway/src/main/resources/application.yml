@@ -1,5 +1,6 @@
 server:
   port: 8080
+
 spring:
   application:
     name: api-gateway
@@ -11,15 +12,15 @@ spring:
           predicates:
             - Path=/api/students/**
           filters:
-            - RemoveRequestHeader=Cookie
-            - PreserveHostHeader  # Add this line
-        - id: details-service
-          uri: lb://details-service
-          predicates:
-            - Path=/api/details/**
-          filters:
-            - RemoveRequestHeader=Cookie  # Remove unwanted headers
-            - PreserveHostHeader  # Ensure headers pass correctly
+            - StripPrefix=1
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: '*'
+            allowedMethods: GET,POST,PUT,DELETE # Fix the typo here
+            allowedHeaders: '*'
+            allowCredentials: false
+
 eureka:
   client:
     service-url:
