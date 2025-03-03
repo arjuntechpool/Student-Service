@@ -3,6 +3,7 @@ package com.student.studentservice.controller;
 import com.student.studentservice.model.Student;
 import com.student.studentservice.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

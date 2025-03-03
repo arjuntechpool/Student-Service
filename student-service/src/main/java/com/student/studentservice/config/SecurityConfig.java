@@ -20,11 +20,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> {
                     authorize
-                            .requestMatchers("/students/register", "/students/login").permitAll()
+                            .requestMatchers("/students/**").permitAll()
                             .anyRequest().authenticated();
                 })
-//                .authenticationProvider(authenticationProvider())
-                .httpBasic(Customizer.withDefaults());
+                .httpBasic(Customizer.withDefaults())  //
+                .formLogin(login -> login.disable()); //
         return http.build();
     }
 
