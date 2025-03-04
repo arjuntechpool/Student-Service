@@ -1,6 +1,6 @@
-package com.student.apigateway.filter;
+package com.techpool.apigateway.filter;
 
-import com.student.apigateway.util.JwtUtil;
+import com.techpool.apigateway.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;

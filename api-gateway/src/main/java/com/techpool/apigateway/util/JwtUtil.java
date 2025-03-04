@@ -1,4 +1,4 @@
-package com.student.apigateway.util;
+package com.techpool.apigateway.util;
 
 
 import io.jsonwebtoken.Claims;
